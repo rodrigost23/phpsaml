@@ -23,17 +23,23 @@ foreach ($folderInfo as $element) {
     }
 }
 
+use OneLogin\Saml2\Utils;
+
 $phpsaml = new PluginPhpsamlPhpsaml();
 
 $phpsaml::auth();
 
-$phpsaml::$auth->processSLO();
-
-$errors = $phpsaml::$auth->getErrors();
+try {
+    $phpsaml::$auth->processSLO();
+    $errors = $phpsaml::$auth->getErrors();
+} catch (\Throwable $th) {
+    $errors = [$th->getMessage()];
+}
 
 if (empty($errors)) {
     $phpsaml::glpiLogout();
 } else {
-    echo $implode(', ', $errors);
-    Toolbox::logInFile("php-errors", $implode(', ', $errors) . "\n", true);
+    Toolbox::logInFile("php-errors", implode(', ', $errors) . "\n", true);
 }
+
+Utils::redirect($CFG_GLPI["url_base"]);
